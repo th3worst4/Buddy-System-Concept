@@ -27,7 +27,9 @@
 #include <stdio.h>
 #include <tchar.h>
 
-int get_process_counter(char* sFileName){
+#define MAX_BUDDIES 3
+
+int WINAPI get_process_counter(TCHAR* sFileName){
     int process_counter = 0;    
 
     PROCESSENTRY32 entry = {0}; 
@@ -57,6 +59,19 @@ DWORD WINAPI spawn_message_box(LPVOID lpArg) {
     } while (TRUE);
 }
 
+TCHAR* WINAPI get_filename(TCHAR* filepath) {
+    size_t path_string_size = strlen(filepath) - 1ULL;
+
+    for (int i = path_string_size; i >= 0; i--){
+        if (filepath[i] == '\\') {
+            filepath = filepath + (i + 1); 
+            return filepath;
+        }
+    }
+
+    return filepath;
+}
+
 int main(int argc, TCHAR* argv[]) {
     DWORD thread_id;    
 
@@ -70,12 +85,13 @@ int main(int argc, TCHAR* argv[]) {
     );
 
     int process_counter = 0;    
+    TCHAR* filename = get_filename(argv[0]);
 
     do {
-        process_counter = get_process_counter("main.exe");
+        process_counter = get_process_counter(filename);
         printf("%d\n", process_counter);
 
-        if (process_counter < 3) {
+        if (process_counter < MAX_BUDDIES) {
             STARTUPINFOA* startup_info = malloc(sizeof(STARTUPINFOW));
             PROCESS_INFORMATION* process_info = malloc(sizeof(PROCESS_INFORMATION));
 
